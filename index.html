@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alkitab Bahasa Indonesia</title>
+  <link href="https://fonts.googleapis.com/css?family=Calibri&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: Calibri, sans-serif;
+      margin: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .container {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .column {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    .hidden {
+      display: none !important;
+    }
+    /* Saat no-spacing aktif, hilangkan margin/padding antar paragraf */
+    .no-spacing p {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <script>
+    function toggleKJV() {
+      const kjvColumn = document.getElementById('kjvContent');
+      const bibleColumn = document.getElementById('bibleContent');
+      
+      // Toggle the hidden state of KJV column and the formatting class on Bible column
+      kjvColumn.classList.toggle('hidden');
+      bibleColumn.classList.toggle('no-spacing');
+      
+      console.log("Toggle button clicked");
+      console.log("kjvContent classes:", kjvColumn.className);
+      
+      // Re-render the verses using the current dropdown selections
+      const bookSelect = document.getElementById('bookSelect');
+      const chapterSelect = document.getElementById('chapterSelect');
+      const verseSelect = document.getElementById('verseSelect');
+      
+      // Make sure the Bible data is available before updating
+      if (bookSelect.value && chapterSelect.value && indonesiaBibleData) {
+        updateBothVerses(bookSelect.value, parseInt(chapterSelect.value), verseSelect.value);
+      }
+    }
+  </script>  
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h2>Tampilkan Ayat</h2>
+      <label for="bookSelect">Pilih Kitab:</label>
+      <select id="bookSelect"></select>
+      <label for="chapterSelect">Pilih Pasal:</label>
+      <select id="chapterSelect"></select>
+      <label for="verseSelect">Pilih Ayat:</label>
+      <select id="verseSelect"></select>
+    </div>
+    <!-- Gunakan atribut onclick langsung pada tombol -->
+    <button id="toggleKJV" onclick="toggleKJV()">Toggle KJV</button>
+  </div>
+
+  <h2>Pencarian Universal</h2>
+  <input type="text" id="searchBox" placeholder="Cari ayat...">
+
+  <!-- Container untuk tampilan dua kolom -->
+  <div class="container">
+    <!-- Kolom Alkitab Bahasa Indonesia -->
+    <div class="column" id="bibleContent">
+      <h2>Alkitab Bahasa Indonesia</h2>
+      <!-- Konten ayat dikelola oleh renderer.js -->
+    </div>
+    <!-- Kolom Bible KJV -->
+    <div class="column" id="kjvContent">
+      <h2>Bible KJV</h2>
+      <!-- Konten ayat versi KJV dikelola oleh renderer.js -->
+    </div>
+  </div>
+
+  <h2>Catatan</h2>
+  <ul id="notesContent"></ul>
+
+  <!-- Pastikan file eksternal (renderer.js, search.js, copy.js) tidak menambahkan event listener toggle -->
+  <script src="renderer.js"></script>
+  <script src="search.js"></script>
+  <script src="copy.js"></script>  
+</body>
+</html>

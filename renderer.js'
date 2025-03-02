@@ -1,0 +1,156 @@
+let contentDiv;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    contentDiv = document.getElementById('bibleContent');
+    const bible = await window.electron.getBible();
+    if (!bible || Object.keys(bible).length === 0) {
+        console.error("❌ ERROR: Bible data is empty or not loaded.");
+        return;
+    }
+
+    const bookSelect = document.getElementById('bookSelect');
+    const chapterSelect = document.getElementById('chapterSelect');
+    const verseSelect = document.getElementById('verseSelect');
+    const searchBox = document.getElementById('searchBox');
+
+    if (searchBox) {
+        searchBox.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                searchBible();
+            }
+        });
+    }
+
+    bookSelect.innerHTML = "";
+    Object.keys(bible).forEach(book => {
+        let option = document.createElement('option');
+        option.value = book;
+        option.textContent = book;
+        bookSelect.appendChild(option);
+    });
+
+    bookSelect.addEventListener('change', () => {
+        chapterSelect.innerHTML = "";
+        let book = bookSelect.value;
+        if (bible[book]) {
+            Object.keys(bible[book])
+                .map(Number)
+                .sort((a, b) => a - b)
+                .forEach(chapter => {
+                    let option = document.createElement('option');
+                    option.value = chapter;
+                    option.textContent = `Pasal ${chapter}`;
+                    chapterSelect.appendChild(option);
+                });
+        }
+        chapterSelect.dispatchEvent(new Event('change'));
+    });
+
+    chapterSelect.addEventListener('change', () => {
+        verseSelect.innerHTML = "";
+        let book = bookSelect.value;
+        let chapter = chapterSelect.value;
+        
+        let allOption = document.createElement('option');
+        allOption.value = "all";
+        allOption.textContent = "Semua";
+        verseSelect.appendChild(allOption);
+        
+        if (bible[book] && bible[book][chapter]) {
+            Object.keys(bible[book][chapter])
+                .map(Number)
+                .sort((a, b) => a - b)
+                .forEach(verse => {
+                    let option = document.createElement('option');
+                    option.value = verse;
+                    option.textContent = `Ayat ${verse}`;
+                    verseSelect.appendChild(option);
+                });
+        }
+        verseSelect.dispatchEvent(new Event('change'));
+    });
+
+    verseSelect.addEventListener('change', () => {
+        let selectedVerse = verseSelect.value;
+        let book = bookSelect.value;
+        let chapter = chapterSelect.value;
+        if (selectedVerse === "all") {
+            loadFullChapter(book, chapter);
+        } else {
+            loadVerse();
+        }
+    });
+});
+
+async function loadFullChapter(book, chapter) {
+    const bible = await window.electron.getBible();
+    contentDiv.innerHTML = `<h2>${book} Pasal ${chapter}</h2>`;
+
+    if (bible[book] && bible[book][chapter]) {
+        Object.entries(bible[book][chapter]).forEach(([verse, text]) => {
+            let p = document.createElement('p');
+            p.textContent = `${verse}: ${text}`;
+            contentDiv.appendChild(p);
+        });
+    }
+    addNavigationButtons();
+}
+
+async function loadVerse() {
+    const bible = await window.electron.getBible();
+    const book = document.getElementById('bookSelect').value;
+    const chapter = document.getElementById('chapterSelect').value;
+    const verse = document.getElementById('verseSelect').value;
+    
+    contentDiv.innerHTML = "";
+    if (bible[book] && bible[book][chapter] && bible[book][chapter][verse]) {
+        let p = document.createElement('p');
+        p.textContent = `${book} ${chapter}:${verse} - ${bible[book][chapter][verse]}`;
+        contentDiv.appendChild(p);
+    }
+    addNavigationButtons();
+}
+
+async function nextChapter() {
+    const bible = await window.electron.getBible();
+    const book = bookSelect.value;
+    const currentChapter = parseInt(chapterSelect.value);
+    const chapters = Object.keys(bible[book]).map(Number).sort((a, b) => a - b);
+    const nextChapterIndex = chapters.indexOf(currentChapter) + 1;
+    if (nextChapterIndex < chapters.length) {
+        chapterSelect.value = chapters[nextChapterIndex];
+        chapterSelect.dispatchEvent(new Event('change'));
+        verseSelect.value = Object.keys(bible[book][chapters[nextChapterIndex]])[0]; // Select first verse
+        verseSelect.dispatchEvent(new Event('change'));
+        loadVerse();
+    }
+}
+
+async function nextVerse() {
+    const bible = await window.electron.getBible();
+    const book = bookSelect.value;
+    let chapter = chapterSelect.value;
+    let currentVerse = parseInt(verseSelect.value);
+    let verses = Object.keys(bible[book][chapter]).map(Number).sort((a, b) => a - b);
+    let nextVerseIndex = verses.indexOf(currentVerse) + 1;
+    
+    if (nextVerseIndex < verses.length) {
+        verseSelect.value = verses[nextVerseIndex];
+        verseSelect.dispatchEvent(new Event('change'));
+        loadVerse();
+    } else {
+        nextChapter();
+    }
+}
+
+function addNavigationButtons() {
+    let buttonsDiv = document.createElement('div');
+    buttonsDiv.innerHTML = `
+        <br>
+        <button onclick="nextChapter()">Next Chapter →</button>
+        <button onclick="nextVerse()">Next Verse →</button>
+    `;
+    contentDiv.appendChild(buttonsDiv);
+}
+
