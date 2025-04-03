@@ -119,17 +119,6 @@ void setup() {
     nfc.SAMConfig();
   }
 
-  // New I2C Peripheral init
-  Serial.println("Initializing New I2C Peripheral...");
-  myWire1.beginTransmission(NEW_I2C_ADDRESS);
-  if (myWire1.endTransmission() != 0) {
-    Serial.println("New I2C Peripheral Failed!");
-    display.println("New I2C Peripheral Failed!");
-    display.display();
-  } else {
-    Serial.println("New I2C Peripheral Initialized!");
-  }
-
   // LoRa init
   Serial.println("Initializing LoRa...");
   SPI.begin(LORA_SCK, LORA_MISO, LORA_MOSI, LORA_SS);
@@ -169,7 +158,6 @@ void loop() {
   display.println(" V");
 
   display.setTextSize(2); // Set text size to 2 for the time
-  display.print("Jam: ");
   display.println(currentTime);
 
   display.setTextSize(1); // Set text size back to 1 for the date
